@@ -1,5 +1,5 @@
 /**
- * Matrix (N*N) multiplication with a single thread.
+ * Matrix (N*N) multiplication with a single thread
  */
 #include <stdio.h>
 #include <stdlib.h>

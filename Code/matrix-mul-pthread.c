@@ -1,5 +1,5 @@
 /**
- * Matrix (N*N) multiplication with multiple threads.
+ * Matrix (N*N) multiplication with multiple threads
  */
 #include <stdio.h>
 #include <stdlib.h>

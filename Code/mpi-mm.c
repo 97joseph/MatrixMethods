@@ -1,8 +1,3 @@
-// CSc 522
-// MPI matrix multiplication example
-// Assumes that number of MPI ranks divides N
-// From: Prof. David Lowenthal
-
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>

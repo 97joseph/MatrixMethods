@@ -1,9 +1,10 @@
 /**
- * Matrix (N*N) multiplication with a single thread.
+ * Matrix (N*N) multiplication with Open MP
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include "omp.h"
 
 double ** allocate_matrix( int size )
 {
@@ -48,17 +49,26 @@ void print_matrix( double **matrix, int size )
 int main( int argc, char *argv[] )
 {
   double **matrix1, **matrix2, **matrix3;
-  int size, i, j, k;
+  int size, i, j, k, chunksize, numthreads;
   double sum = 0;
   struct timeval tstart, tend;
   double exectime;
 
-  if (argc != 2) {
-    fprintf( stderr, "%s <matrix size>\n", argv[0] );
+  if (argc != 3) {
+    fprintf( stderr, "%s <matrix size> <number of thread>\n", argv[0] );
     return -1;
   }
 
   size = atoi( argv[1] );
+  numthreads = atoi( argv[2] );
+
+  if (size % numthreads != 0) {
+    fprintf( stderr, "matrix size %d must be a multiple of number of threads %d!\n",
+	     size, numthreads );
+    return -1;
+  }
+  omp_set_num_threads( numthreads );
+  chunksize = size / numthreads;
 
   matrix1 = allocate_matrix( size );
   matrix2 = allocate_matrix( size );
@@ -75,6 +85,9 @@ int main( int argc, char *argv[] )
   }
 
   gettimeofday( &tstart, NULL );
+  
+#pragma omp parallel for shared(matrix1, matrix2, matrix3, chunksize) \
+  private(i,j,k,sum) schedule(static, chunksize)
   for (i = 0; i < size; ++i) { // hold row index of 'matrix1'
     for (j = 0; j < size; ++j) { // hold column index of 'matrix2'
       sum = 0; // hold value of a cell
@@ -96,8 +109,8 @@ int main( int argc, char *argv[] )
   exectime = (tend.tv_sec - tstart.tv_sec) * 1000.0; // sec to ms
   exectime += (tend.tv_usec - tstart.tv_usec) / 1000.0; // us to ms   
 
-  printf( "Number of MPI ranks: 0\tNumber of threads: 1\tExecution time:%.3lf sec\n",
-          exectime/1000.0);
+  printf( "Number of MPI ranks: 0\tNumber of threads: %d\tExecution time:%.3lf sec\n",
+          numthreads, exectime/1000.0);
 
   return 0;
 }
